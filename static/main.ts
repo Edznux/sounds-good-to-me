@@ -4,6 +4,7 @@ var testbutton = document.getElementById("test")
 var code1button = document.getElementById("code1")
 var code2button = document.getElementById("code2")
 var code3button = document.getElementById("code3")
+var code4button = document.getElementById("code4")
 var lpsEl = document.getElementById("lps")
 var lpsDisplayEl = document.getElementById("lps-display")
 
@@ -578,6 +579,90 @@ func (fg *FileGenerator) Wait() (*EstimatedResult, error) {
 }
 `
 
+const exampleCode4 = `package main
+
+import (
+	"crypto/des"
+	"crypto/md5"
+	"crypto/rc4"
+	"crypto/sha1"
+	"fmt"
+	"io"
+	"log"
+	"os"
+)
+
+func main() {
+}
+
+func test_des() {
+	// NewTripleDESCipher can also be used when EDE2 is required by
+	// duplicating the first 8 bytes of the 16-byte key.
+	ede2Key := []byte("example key 1234")
+
+	var tripleDESKey []byte
+	tripleDESKey = append(tripleDESKey, ede2Key[:16]...)
+	tripleDESKey = append(tripleDESKey, ede2Key[:8]...)
+	// ruleid: use-of-DES
+	_, err := des.NewTripleDESCipher(tripleDESKey)
+	if err != nil {
+		panic(err)
+	}
+
+	// See crypto/cipher for how to use a cipher.Block for encryption and
+	// decryption.
+}
+
+func test_md5() {
+	f, err := os.Open("file.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	defer func() {
+		err := f.Close()
+		if err != nil {
+			log.Printf("error closing the file: %s", err)
+		}
+	}()
+
+	// ruleid: use-of-md5
+	h := md5.New()
+	if _, err := io.Copy(h, f); err != nil {
+		log.Fatal(err)
+	}
+	// ruleid: use-of-md5
+	fmt.Printf("%x", md5.Sum(nil))
+}
+
+func test_rc4() {
+	key := []byte{1, 2, 3, 4, 5, 6, 7}
+	// ruleid: use-of-rc4
+	c, err := rc4.NewCipher(key)
+	dst := make([]byte, len(src))
+	c.XORKeyStream(dst, src)
+}
+
+func test_sha1() {
+	f, err := os.Open("file.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	// ruleid: use-of-sha1
+	h := sha1.New()
+	if _, err := io.Copy(h, f); err != nil {
+		log.Fatal(err)
+	}
+	// ruleid: use-of-sha1
+	fmt.Printf("%x", sha1.Sum(nil))
+}
+`
+
+setTimeout(function(){
+    window.editor.getModel().setValue(exampleCode1);
+}, 200);
 
 lpsDisplayEl.innerText = LINES_PER_SEC.toString();
 
@@ -664,12 +749,26 @@ function soundMap(value: number) :string {
 
 
 function playSound(data: Result) {
-    //create a synth and connect it to the main output (your speakers)
-    // const synth = new Tone.Synth().toDestination();
-    
-    //play a middle 'C' for the duration of an 8th note
     let durationTotal = lineToduration(data.line_count)
     let durationPerNote = durationTotal/data.states.length
+
+    var line = 0
+    var countTick = 0;
+    // OMEGALUL this is so bad
+    var intervalID = setInterval(function(){
+        if (line >= data.line_count){
+            return;
+        }
+        countTick++;
+        var percentageOfTickProgress = countTick / data.line_count;
+        line = Math.floor(percentageOfTickProgress * data.line_count);
+
+        window.editor.revealLineInCenter(line);
+    }, durationTotal/data.line_count * 1000)
+
+    setTimeout(function(id){clearInterval(id)}, durationTotal*1000, intervalID)
+    
+
     console.log(durationTotal+ "second(s) (line count:"+ data.line_count+ ", Lines/sec: "+ data.line_count/durationTotal + ") with "+ data.states.length+ " notes" + " duration per note: "+ durationPerNote)
     
     const now = Tone.now();
