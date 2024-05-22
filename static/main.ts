@@ -7,15 +7,10 @@ var code3button = document.getElementById("code3")
 var lpsEl = document.getElementById("lps")
 var lpsDisplayEl = document.getElementById("lps-display")
 
+const baseNote = "C4";
 let LINES_PER_SEC = lpsEl.valueAsNumber;
-lpsDisplayEl.innerText = LINES_PER_SEC.toString();
 
-lpsEl.addEventListener("input", function(){
-    LINES_PER_SEC = lpsEl.valueAsNumber;
-    lpsDisplayEl.innerText = LINES_PER_SEC.toString();
-}
-
-const exampleCode1=`package processor
+const exampleCode1 = `package processor
 import (
 	"context"
 	"fmt"
@@ -95,6 +90,7 @@ func TraverseTree(n *sitter.Node, states []State) {
 	}
 }
 `
+
 const exampleCode2 = `
 package main
 
@@ -582,35 +578,39 @@ func (fg *FileGenerator) Wait() (*EstimatedResult, error) {
 }
 `
 
-fileEl.value = exampleCode1
 
-code1button?.addEventListener("click", function(){
-    fileEl.value = exampleCode1
-});
-code2button?.addEventListener("click", function(){
-    fileEl.value = exampleCode2
-});
-code3button?.addEventListener("click", function(){
-    fileEl.value = exampleCode3
-});
+lpsDisplayEl.innerText = LINES_PER_SEC.toString();
 
-testbutton?.addEventListener("click", function(){
-    Tone.start();
-    const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-    synth.triggerAttackRelease("C4", "8n");
-});
+setupListener();
+function setupListener(){
+    // window.editor.getModel().setValue(exampleCode1);
+    lpsEl.addEventListener("input", function(){
+        LINES_PER_SEC = lpsEl.valueAsNumber;
+        lpsDisplayEl.innerText = LINES_PER_SEC.toString();
+    });
 
-// submitEl?.addEventListener("click", function(){
-// 	Tone.start();
-// 	console.log("audio is ready");
-//     playSound();
-// });
+    code1button?.addEventListener("click", function(){
+        window.editor.getModel().setValue(exampleCode1);
+    });
+    code2button?.addEventListener("click", function(){
+        window.editor.getModel().setValue(exampleCode2);
+    });
+    code3button?.addEventListener("click", function(){
+        window.editor.getModel().setValue(exampleCode3);
+    });
+    
+    testbutton?.addEventListener("click", function(){
+        Tone.start();
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        synth.triggerAttackRelease("C4", "8n");
+    });
 
-submitEl?.addEventListener("click", function(){
-    Tone.start();
-    console.log("audio is ready");
-    upload(fileEl.value, playSound)
-});
+    submitEl?.addEventListener("click", function(){
+        Tone.start();
+        console.log("audio is ready");
+        upload(window.editor.getValue(), playSound)
+    });
+}
 
 
 interface State {
@@ -652,7 +652,6 @@ function lineToduration(lineCount: number) :number {
     return lineCount * (1/LINES_PER_SEC);
 }
 
-const baseNote = "C4";
 function soundMap(value: number) :string {
     switch(value){
         case 0: return "D4";
@@ -674,11 +673,17 @@ function playSound(data: Result) {
     console.log(durationTotal+ "second(s) (line count:"+ data.line_count+ ", Lines/sec: "+ data.line_count/durationTotal + ") with "+ data.states.length+ " notes" + " duration per note: "+ durationPerNote)
     
     const now = Tone.now();
-    const synth = new Tone.PolySynth().toDestination();
-    synth.volume.value = -20;
+    const synth = new Tone.MonoSynth({
+        oscillator: {
+            type: "sine"
+        },
+        envelope: {
+            attack: 0.1
+        }
+    }).toDestination();
+    synth.volume.value = -30;
     const drum = new Tone.AMSynth().toDestination();
     drum.volume.value = +10;
-    // const baseline = new Tone.MembraneSynth().connect(synth);
     synth.triggerAttackRelease(baseNote, durationTotal);
     
     let notes: string[] = [];

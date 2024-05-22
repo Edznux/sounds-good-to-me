@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/vscode-codicons@0.0.17/dist/codicon.min.css" rel="stylesheet">
     <title>Document</title>
 </head>
 <body>
@@ -12,11 +13,17 @@
     <button id="code3">Example code 3</button>
     lines per seconds: <input type="range" id="lps" min="0" max="200" value="80"><span id="lps-display"></span>
     <div>
-        <textarea id="file" name="file" style="width: 100%; min-height: 500px;"></textarea>
+        <div id="file" name="file" class="monaco" style="width: 100%; min-height: 500px;"></div>
         <button id="submit">Submit</button>
         <small>
     </div>
-        <script src="https://unpkg.com/tone"></script>
-    <script src="main.js"></script>
+    <script src="https://unpkg.com/tone"></script>
+    <script type="module">
+        import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';
+        import * as main from "./main.js";
+        var editor = monaco.editor.create(document.querySelector('.monaco'), {language: 'go'});
+        window.editor = editor;
+    </script>
+    <script src="main.js" type="module"></script>
 </body>
 </html>
