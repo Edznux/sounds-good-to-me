@@ -24,14 +24,16 @@ var GoComplexity = []string{
 }
 
 type State struct {
-	Complexity int
-	Vulnerable bool
+	Complexity int  `json:"complexity"`
+	Vulnerable bool `json:"vulnerable"`
+	IsSink     bool `json:"is_sink"`
+	IsSource   bool `json:"is_source"`
 }
 
 type Result struct {
-	LineCount int
-	ByteCount int
-	States    []State
+	LineCount int     `json:"line_count"`
+	ByteCount int     `json:"byte_count"`
+	States    []State `json:"states"`
 }
 
 func AnalyzeAST(ctx context.Context, data []byte) (*Result, error) {
@@ -45,9 +47,9 @@ func AnalyzeAST(ctx context.Context, data []byte) (*Result, error) {
 		return nil, err
 	}
 	TraverseTree(n.RootNode(), states)
-	for i := range states {
-		fmt.Println(i, states[i].Complexity)
-	}
+	// for i := range states {
+	// 	fmt.Println(i, states[i].Complexity)
+	// }
 	lineCount := bytes.Count(data, []byte("\n"))
 
 	return &Result{

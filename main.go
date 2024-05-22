@@ -2,52 +2,51 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
 	"github.com/Edznux/sound-based-analysis/processor"
-	"github.com/Edznux/sound-based-analysis/sound"
 )
 
+type Content struct {
+	Content string `json:"content"`
+}
+
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
-	file, _, err := r.FormFile("file")
+	var p Content
+	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
-		http.Error(w, "Failed to retrieve file", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	data, err := io.ReadAll(file)
-	if err != nil {
-		http.Error(w, "Failed to read file", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	ctx := context.Background()
-	res, err := processor.AnalyzeAST(ctx, data)
+	res, err := processor.AnalyzeAST(ctx, []byte(p.Content))
 	if err != nil {
 		http.Error(w, "Failed to analyze AST", http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(res)
-
 	// Process the uploaded file data here
 	// You can save it to disk, parse it, or perform any other operations
-	w.Write([]byte("File uploaded successfully"))
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
 	http.HandleFunc("/upload", uploadHandler)
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/", fs)
+
 	log.Println("Server started on http://localhost:8080")
 
-	sound.Start()
 	fmt.Println("lol ended sound")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8000", nil))
 }
