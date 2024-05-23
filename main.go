@@ -45,7 +45,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 
-	log.Println("Server started on http://localhost:8080")
+	log.Println("Server started on http://localhost:8000")
 
 	fmt.Println("lol ended sound")
 	log.Fatal(http.ListenAndServe(":8000", nil))

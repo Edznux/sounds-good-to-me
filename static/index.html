@@ -7,7 +7,8 @@
     <title>Sounds Good To Me</title>
 </head>
 <body>
-    <button id="test">test sound (debug)</button>
+    <div id="waveform"></div>
+    <!-- <button id="test">test sound (debug)</button> -->
     <button id="code1">Example code 1</button>
     <button id="code2">Example code 2</button>
     <button id="code3">Example code 3</button>
@@ -25,6 +26,20 @@
             Provide a piece of code in the editor, and click on submit to listen to it.<br/>
         </details>
     </p>
+    <script type="module">
+        import WaveSurfer from 'https://cdn.jsdelivr.net/npm/wavesurfer.js@7/dist/wavesurfer.esm.js'
+        
+        const wavesurfer = WaveSurfer.create({
+          container: '#waveform',
+          waveColor: '#4F4A85',
+          progressColor: '#383351',
+          url: '/recording.webm',
+        })
+        
+        wavesurfer.on('interaction', () => {
+          wavesurfer.play()
+        })
+    </script>
     <script src="https://unpkg.com/tone"></script>
     <script type="module">
         import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/+esm';

@@ -64,8 +64,9 @@ func TraverseTree(n *sitter.Node, states []State) {
 		fmt.Println("Node is nil")
 		return
 	}
+	// fmt.Println(n.StartByte(), n.EndByte(), n.Type())
 	if slices.Contains(GoComplexity, n.Type()) {
-		// fmt.Println(n.StartByte(), n.EndByte(), n.Type())
+		// fmt.Println("added complexity")
 		for i := n.StartByte(); i < n.EndByte(); i++ {
 			if states[i].Complexity == 0 {
 				states[i] = State{
@@ -76,6 +77,20 @@ func TraverseTree(n *sitter.Node, states []State) {
 			}
 		}
 	}
+
+	if n.Type() == "pointer_type" {
+		// fmt.Println("added sink")
+		for i := n.StartByte(); i < n.EndByte(); i++ {
+			states[i].IsSink = true
+		}
+	}
+	if n.Type() == "type_conversion_expression" {
+		// fmt.Println("added source")
+		for i := n.StartByte(); i < n.EndByte(); i++ {
+			states[i].IsSource = true
+		}
+	}
+
 	for child := range n.ChildCount() {
 		TraverseTree(n.Child(int(child)), states)
 	}

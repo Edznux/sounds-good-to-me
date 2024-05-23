@@ -701,6 +701,8 @@ function setupListener(){
 interface State {
     complexity: number;
     vulnerable: boolean;
+    is_sink: boolean;
+    is_source: boolean;
 }
 
 interface Result {
@@ -766,10 +768,8 @@ function playSound(data: Result) {
         window.editor.revealLineInCenter(line);
     }, durationTotal/data.line_count * 1000)
 
-    setTimeout(function(id){clearInterval(id)}, durationTotal*1000, intervalID)
-    
 
-    console.log(durationTotal+ "second(s) (line count:"+ data.line_count+ ", Lines/sec: "+ data.line_count/durationTotal + ") with "+ data.states.length+ " notes" + " duration per note: "+ durationPerNote)
+    // const recorder = new Tone.Recorder();
     
     const now = Tone.now();
     const synth = new Tone.MonoSynth({
@@ -780,26 +780,87 @@ function playSound(data: Result) {
             attack: 0.1
         }
     }).toDestination();
+
     synth.volume.value = -30;
     const drum = new Tone.AMSynth().toDestination();
+    // const drum = new Tone.AMSynth().connect(recorder);
     drum.volume.value = +10;
+    const bla = new Tone.MetalSynth().toDestination();
+    bla.volume.value = -10;
+    const toto = new Tone.FatOscillator("Ab3", "sawtooth", 40).toDestination();
+    toto.volume.value = -10;
+    // const bla = new Tone.MetalSynth().connect(recorder);
+
+    // }).connect(recorder);
+    // start recording
+    // recorder.start();
+
+    setTimeout(async function(id){
+    // setTimeout(async function(id, recorder){
+        clearInterval(id)
+
+    //     const recording = await recorder.stop();
+    //     const url = URL.createObjectURL(recording);
+    //     const anchor = document.createElement("a");
+    //     anchor.download = "recording.webm";
+    //     anchor.href = url;
+    //     anchor.click();
+    // }, durationTotal*1000, intervalID, recorder)
+    }, durationTotal*1000, intervalID)
+    
+
+    console.log(durationTotal+ " second(s) (line count:"+ data.line_count+ ", Lines/sec: "+ data.line_count/durationTotal + ") with "+ data.states.length+ " notes" + " duration per note: "+ durationPerNote)
+
     synth.triggerAttackRelease(baseNote, durationTotal);
     
-    let notes: string[] = [];
+    interface Note {
+        notation: string;
+        instrumentName: string; // name of the instrument to be mapped
+    }
+    let notes: Note[] = [];
     for (let i = 0; i < data.states.length; i++){
-        let note = soundMap(data.states[i].complexity)
-        notes.push(note);
+        let notation = soundMap(data.states[i].complexity)
+        let instrumentName = "drum";
+        if(data.states[i].vulnerable){
+            console.log("vuln")
+            instrumentName = "drum";
+        }
+        if(data.states[i].is_sink){
+            console.log("sink")
+            instrumentName = "bla";
+        }
+        if(data.states[i].is_source){
+            console.log("source")
+            instrumentName = "toto";
+        }
+        notes.push({notation: notation, instrumentName: instrumentName});
     }
     
     for (let i = 0; i < notes.length; i++){
         // This skips created notes that are the same as the previous note
-        if(i > 0 && notes[i] == notes[i-1]){
+        //THIS IS ABSOLUTELY TERRIBLE AND BUGGED AS FUCK
+        if(i > 0 && notes[i].notation == notes[i-1].notation && notes[i].instrumentName == notes[i-1].instrumentName) {
             continue;
         }
         // It's already part of the baseline, lets not double submit
-        if(notes[i] == baseNote){
+        if(notes[i].notation == baseNote){
             continue;
         }
-        drum.triggerAttackRelease(notes[i], durationPerNote, now + i * durationPerNote);
+        
+        console.log(notes[i].instrumentName)
+        switch(notes[i].instrumentName){
+            case "drum":
+                drum.triggerAttackRelease(notes[i].notation, durationPerNote, now + i * durationPerNote);
+                break;
+            case "bla":
+                bla.triggerAttackRelease(notes[i].notation, durationPerNote, now + i * durationPerNote);
+                break;
+            case "toto":
+                toto.triggerAttackRelease(notes[i].notation, durationPerNote, now + i * durationPerNote);
+                break;
+            default:
+                synth.triggerAttackRelease(notes[i].notation, durationPerNote, now + i * durationPerNote);
+                break;
+        }
     }
 }
