@@ -111,7 +111,8 @@ function soundMap(value) {
         case 0: return "D4";
         case 1: return "E4";
         case 2: return "C2";
-        case 3: return "C2";
+        case 3: return "C1";
+        case 4: return "F1";
         default: return baseNote;
     }
 }
@@ -188,9 +189,9 @@ function playSound(data) {
             continue;
         }
         // It's already part of the baseline, lets not double submit
-        if (notes[i].notation == baseNote) {
-            continue;
-        }
+        // if(notes[i].notation == baseNote){
+        //     continue;
+        // }
         console.log(notes[i].instrumentName);
         switch (notes[i].instrumentName) {
             case "drum":
