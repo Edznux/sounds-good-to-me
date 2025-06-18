@@ -1,6 +1,13 @@
-# Sound based analysis
+# Sounds good to me
+
+## Install reqs
+
+```
+uv pip install -r requirements.txt
+```
 
 ## Run
 
-go build && ./sound-based-analysis
-curl http://localhost:8080/upload -F "file=@main.go"
+```
+uv run python ./codebase_analyzer.py /PATH/TO/CODE/PACKAGE/
+```
